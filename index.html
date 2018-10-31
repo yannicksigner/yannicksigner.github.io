@@ -1,44 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - collada</title>
+		<title>three.js webgl - glTF loader</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
-				background:#777;
-				padding:0;
-				margin:0;
-				overflow:hidden;
+				font-family: Monospace;
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
 			}
-
 			#info {
+				color: #fff;
 				position: absolute;
-				top: 0px;
+				top: 10px;
 				width: 100%;
-				color: #ffffff;
-				padding: 5px;
-				font-family:Monospace;
-				font-size:13px;
-				text-align:center;
+				text-align: center;
+				z-index: 100;
+				display:block;
 			}
-
-			a {
-				color: #ffffff;
+			#info a {
+				color: #75ddc1;
+				font-weight: bold;
 			}
 		</style>
 	</head>
-	<body>
 
-		<div id="container"></div>
+	<body>
 		<div id="info">
-			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> collada loader
-			| Elf Girl by <a href="https://sketchfab.com/yellow09" target="_blank" rel="noopener">halloween</a> is licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC Attribution</a>
+			<a href="http://threejs.org" target="_blank" rel="noopener">three.js</a> - GLTFLoader<br />
+			Battle Damaged Sci-fi Helmet by
+			<a href="https://sketchfab.com/theblueturtle_" target="_blank" rel="noopener">theblueturtle_</a><br />
 		</div>
 
 		<script src="js/three.js"></script>
 
-		<script src="js/ColladaLoader.js"></script>
+		<script src="js/GLTFLoader.js"></script>
+
 		<script src="js/WebGL.js"></script>
 		<script src="js/stats.min.js"></script>
 
@@ -50,65 +50,59 @@
 
 			}
 
-			var container, stats, clock;
-			var camera, scene, renderer, elf;
+			var container, stats, controls;
+			var camera, scene, renderer, light;
 
 			init();
 			animate();
 
 			function init() {
 
-				container = document.getElementById( 'container' );
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
 
-				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 2000 );
-				camera.position.set( 8, 10, 8 );
-				camera.lookAt( 0, 3, 0 );
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.25, 20 );
+				camera.position.set( -1.8, 0.9, 2.7 );
+
 
 				scene = new THREE.Scene();
 
-				clock = new THREE.Clock();
+				light = new THREE.HemisphereLight( 0xbbbbff, 0x444422 );
+				light.position.set( 0, 1, 0 );
+				scene.add( light );
 
-				// loading manager
+				// model
+				var loader = new THREE.GLTFLoader();
+				loader.load( 'obj/pot.gltf', function ( gltf ) {
 
-				var loadingManager = new THREE.LoadingManager( function() {
+					gltf.scene.traverse( function ( child ) {
 
-					scene.add( elf );
+						if ( child.isMesh ) {
+
+
+						}
+
+					} );
+
+					scene.add( gltf.scene );
+
+				}, undefined, function ( e ) {
+
+					console.error( e );
 
 				} );
 
-				// collada
-
-				var loader = new THREE.ColladaLoader( loadingManager );
-				loader.load( 'obj/pot.dae', function ( collada ) {
-
-					elf = collada.scene;
-
-				} );
-
-				//
-
-				var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
-				scene.add( ambientLight );
-
-				var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.8 );
-				directionalLight.position.set( 1, 1, 0 ).normalize();
-				scene.add( directionalLight );
-
-				//
-
-				renderer = new THREE.WebGLRenderer();
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.gammaOutput = true;
 				container.appendChild( renderer.domElement );
 
-				//
+				window.addEventListener( 'resize', onWindowResize, false );
 
+				// stats
 				stats = new Stats();
 				container.appendChild( stats.dom );
-
-				//
-
-				window.addEventListener( 'resize', onWindowResize, false );
 
 			}
 
@@ -121,29 +115,19 @@
 
 			}
 
+			//
+
 			function animate() {
 
 				requestAnimationFrame( animate );
 
-				render();
+				renderer.render( scene, camera );
+
 				stats.update();
 
 			}
 
-			function render() {
-
-				var delta = clock.getDelta();
-
-				if ( elf !== undefined ) {
-
-					elf.rotation.z += delta * 0.5;
-
-				}
-
-				renderer.render( scene, camera );
-
-			}
-
 		</script>
+
 	</body>
 </html>
